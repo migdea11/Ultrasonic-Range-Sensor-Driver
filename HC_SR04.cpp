@@ -1,10 +1,14 @@
 #include "HC_SR04.h"
 
+#include <algorithm>
+#include <array>
+#include <assert.h>
 #include <pigpio.h>
 #include <time.h>
 #include <unistd.h>
 #include <wiringPi.h>
 
+#include <iostream>
 
 void interval_trigger_thread()
 {   
@@ -78,6 +82,9 @@ void HC_SR04::SendTrigger()
 
 void HC_SR04::Start(uint32_t trigger_interval, uint32_t polling_interval)
 {
+    assert(trigger_interval >= TRIG_MIN_INT);
+    assert(polling_interval > 0);
+
     gpioSetMode(TRIG, PI_OUTPUT);
     gpioSetMode(ECHO, PI_INPUT); 
     
@@ -89,6 +96,10 @@ void HC_SR04::Start(uint32_t trigger_interval, uint32_t polling_interval)
 
 void HC_SR04::Stop()
 {
+    if (trigger_status_ == false)
+    {
+        return;
+    }
     trigger_status_ = false;
     trigger_thread_.join();
 }
@@ -109,7 +120,14 @@ bool HC_SR04::Read(uint16_t& distance)
 
 void HC_SR04::Write(uint32_t rise, uint32_t fall)
 {
-    distance_ = 1000 * (fall - rise) / 58;
+    static std::array<uint32_t, FILTER_SIZE> filter_queue = {0};
+    static uint8_t insert_index = 0;
+    filter_queue[insert_index] = 1000 * (fall - rise) / 58;
+    insert_index = ++insert_index % FILTER_SIZE;
+
+    auto sorted_array = filter_queue;
+    std::sort(sorted_array.begin(), sorted_array.end());
+    distance_ = sorted_array[FILTER_SIZE/2];
     // add bound checking
     valid_range_ = true;
 }

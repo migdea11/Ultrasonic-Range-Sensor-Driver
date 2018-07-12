@@ -14,7 +14,7 @@ int main()
     sensor->Start();
    
     uint16_t numRead = 0;
-    while(numRead++ < 500)
+    while(numRead++ < 50)
     {
         uint16_t poll = 100; // in ms
         uint16_t dist = 0;

@@ -8,7 +8,7 @@
  *
  */
 
-//#include "RangeSensor.h"
+#include "RangeSensor.h"
 
 #include <cstdio>
 #include <ctime>
@@ -17,7 +17,7 @@
 #include <thread>
 
 
-class HC_SR04 //: public RangeSensor
+class HC_SR04 : public RangeSensor
 {
 private:
     // pins used
@@ -29,6 +29,9 @@ private:
     static const uint16_t ECHO_MIN     =   150;
     static const uint16_t ECHO_MAX     = 25000;
     static const uint16_t ECHO_FAIL    = 38000;
+
+    // size of median filter, must be odd
+    static const uint8_t FILTER_SIZE = 5;
 
     // cached distance and error
     uint16_t distance_ = 0;
@@ -55,16 +58,16 @@ public:
     void SendTrigger();
 
     // Initializes a thread that polls the sensor
-    void Start(uint32_t trigger_interval=TRIG_MIN_INT, uint32_t polling_interval=50); // override final;
+    void Start(uint32_t trigger_interval=TRIG_MIN_INT, uint32_t polling_interval=50) override final;
     // Kills the thread
-    void Stop(); // override final;
+    void Stop() override final;
 
     // used to poll echo pin
     bool PollEcho();
 
     // when valid distance returns true and distance by ref
     // otherwise returns false and a distance of 0
-    bool Read(uint16_t& distance); // override final;
+    bool Read(uint16_t& distance) override final;
 
     // will take the times of the rising and falling edge and 
     void Write(uint32_t rise, uint32_t fall);
