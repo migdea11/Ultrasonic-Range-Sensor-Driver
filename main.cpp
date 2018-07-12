@@ -12,13 +12,20 @@ int main()
 
     cout<<"start"<<endl;
     sensor->Start();
-    
-    while(true)
+   
+    uint16_t numRead = 0;
+    while(numRead++ < 500)
     {
+        uint16_t poll = 100; // in ms
         uint16_t dist = 0;
         sensor->Read(dist);
+        if ((numRead % 10) == 0)
+        {
+            cout << flush;
+        }
         cout<<dist<<", ";
-        usleep(100000);
+        usleep(poll * 1000);
     }
+    sensor->Stop();
     return 0;
 }

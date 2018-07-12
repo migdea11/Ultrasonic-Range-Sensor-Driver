@@ -19,6 +19,7 @@
 
 class HC_SR04 //: public RangeSensor
 {
+private:
     // pins used
     const uint8_t TRIG, ECHO;
 
@@ -36,13 +37,16 @@ class HC_SR04 //: public RangeSensor
     bool trigger_status_ = false;
     uint32_t trigger_interval_;
     std::thread trigger_thread_;
+    uint32_t polling_interval_;
 
     HC_SR04(uint8_t trig_pin, uint8_t echo_pin);
     ~HC_SR04();
 public:
+    // Creates Sensor
+    static HC_SR04* Init(uint8_t trig_pin, uint8_t echo_pin);
+    
     // Get the instance of the device
-    // parameters only required for first call
-    static HC_SR04* Init(uint8_t trig_pin=0, uint8_t echo_pin=0);
+    static HC_SR04* Instance();
 
     // gets the status variable used to stop the trigger thread
     bool GetTriggerStatus();
@@ -51,9 +55,12 @@ public:
     void SendTrigger();
 
     // Initializes a thread that polls the sensor
-    void Start(uint32_t trigger_interval=TRIG_MIN_INT); // override final;
+    void Start(uint32_t trigger_interval=TRIG_MIN_INT, uint32_t polling_interval=50); // override final;
     // Kills the thread
     void Stop(); // override final;
+
+    // used to poll echo pin
+    bool PollEcho();
 
     // when valid distance returns true and distance by ref
     // otherwise returns false and a distance of 0
